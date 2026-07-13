@@ -91,10 +91,10 @@ const Navbar = () => {
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 border ${
                     isActive(link.path)
-                      ? 'bg-slate-900 text-indigo-400 border border-slate-800'
-                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/50'
+                      ? 'bg-slate-900 text-indigo-400 border-slate-800'
+                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/50 border-transparent'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
