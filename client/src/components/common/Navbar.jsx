@@ -54,7 +54,15 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => {
+    if (path === '/trending') {
+      return location.pathname === '/explore' && location.search.includes('sort=trending');
+    }
+    if (path === '/explore') {
+      return location.pathname === '/explore' && !location.search.includes('sort=trending');
+    }
+    return location.pathname === path;
+  };
 
   const navLinks = [
     { name: 'Explore', path: '/explore', icon: Compass },
