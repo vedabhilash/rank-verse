@@ -149,3 +149,10 @@ select:focus {
 .border-slate-800 {
   border-color: #1f1f1f !important;
 }
+
+/* Disable all box-shadows globally for pure flat minimalism */
+*, ::before, ::after {
+  --tw-shadow: 0 0 #0000 !important;
+  --tw-shadow-colored: 0 0 #0000 !important;
+  box-shadow: none !important;
+}
