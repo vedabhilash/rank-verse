@@ -91,28 +91,30 @@ const Explore = () => {
       </div>
 
       {/* Filters & Search Control */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/25 border border-slate-850 p-4 rounded-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-transparent p-0">
         {/* Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-lg">
+        <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-xl">
           <input
             type="text"
             placeholder="Search titles, descriptions, tags..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-sm bg-slate-950 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full pl-10 pr-4 py-3 text-sm bg-white border border-slate-200 rounded-full text-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-md shadow-white/5"
           />
-          <button type="submit" className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
+          <button type="submit" className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
             <Search className="w-4 h-4" />
           </button>
         </form>
 
         {/* Sort Select */}
-        <div className="flex items-center space-x-2.5">
-          <SlidersHorizontal className="w-4 h-4 text-slate-400" />
+        <div className="flex items-center space-x-3">
+          <div className="p-3 bg-slate-900 border border-slate-850 hover:border-slate-800 rounded-xl text-slate-400 transition">
+            <SlidersHorizontal className="w-4 h-4" />
+          </div>
           <select
             value={activeSort}
             onChange={(e) => handleSortSelect(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-200 px-3 py-2 focus:outline-none focus:border-indigo-500"
+            className="bg-slate-900 border border-slate-850 rounded-xl text-sm text-slate-200 px-4 py-3 focus:outline-none focus:border-slate-700 transition cursor-pointer"
           >
             {sortOptions.map(opt => (
               <option key={opt.id} value={opt.id}>
@@ -131,8 +133,8 @@ const Explore = () => {
             onClick={() => handleCategorySelect(cat.id)}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition ${
               activeCategory === cat.id
-                ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-500/15'
-                : 'bg-slate-900/60 text-slate-450 border-slate-850 hover:text-slate-250 hover:bg-slate-900'
+                ? 'border-emerald-500/50 bg-emerald-950/15 text-emerald-400 font-bold'
+                : 'bg-slate-900/60 text-slate-450 border-slate-850 hover:text-slate-200 hover:bg-slate-900'
             }`}
           >
             {cat.label}

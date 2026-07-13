@@ -77,7 +77,7 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
-              <span className="text-2xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent tracking-wider">
+              <span className="text-2xl font-extrabold text-white tracking-wider">
                 RANKVERSE
               </span>
             </Link>
@@ -106,11 +106,7 @@ const Navbar = () => {
             {user && (
               <Link
                 to="/create"
-                className={`flex items-center space-x-1.5 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
-                  isActive('/create')
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/35'
-                    : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:opacity-90 shadow-md shadow-indigo-500/20'
-                }`}
+                className="flex items-center space-x-1.5 px-4 py-2 rounded-full text-sm font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition duration-200 shadow shadow-emerald-500/10"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>Create List</span>
@@ -206,7 +202,7 @@ const Navbar = () => {
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full hover:opacity-90 transition-all duration-300 shadow-md shadow-indigo-500/20"
+                  className="px-4 py-2 text-sm font-bold text-slate-950 bg-white hover:bg-slate-100 rounded-full transition duration-200"
                 >
                   Get Started
                 </Link>
@@ -268,7 +264,7 @@ const Navbar = () => {
               <Link
                 to="/create"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-600 mt-2"
+                className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 mt-2"
               >
                 <PlusCircle className="w-5 h-5" />
                 <span>Create List</span>
@@ -324,7 +320,7 @@ const Navbar = () => {
               <Link
                 to="/register"
                 onClick={() => setIsOpen(false)}
-                className="text-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md text-sm font-medium text-white"
+                className="text-center px-4 py-2 bg-white hover:bg-slate-100 rounded-md text-sm font-bold text-slate-950"
               >
                 Sign Up
               </Link>

@@ -28,7 +28,7 @@ const RankingCard = ({ ranking }) => {
     <motion.div
       whileHover={{ y: -6, scale: 1.01 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col bg-slate-900/50 border border-slate-800/80 rounded-xl overflow-hidden backdrop-blur-sm group hover:border-slate-700/80 transition-colors"
+      className="flex flex-col bg-slate-900/40 border border-slate-850 rounded-2xl overflow-hidden backdrop-blur-sm group hover:border-slate-800 transition shadow-lg shadow-black/75"
     >
       {/* Cover Image Header */}
       <Link to={`/ranking/${_id}`} className="relative h-44 w-full overflow-hidden block">
@@ -38,17 +38,16 @@ const RankingCard = ({ ranking }) => {
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
-
         {/* Floating Badges */}
         <div className="absolute top-3 left-3 flex flex-col space-y-1.5">
           {isFeatured && (
-            <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xxs font-bold uppercase tracking-wider bg-pink-500/85 text-white backdrop-blur-sm border border-pink-400/30">
+            <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xxs font-bold uppercase tracking-wider bg-black/55 text-pink-400 border border-pink-500/30">
               <Award className="w-3 h-3" />
               <span>Featured</span>
             </span>
           )}
           {isCommunitySourced && (
-            <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xxs font-bold uppercase tracking-wider bg-indigo-500/85 text-white backdrop-blur-sm border border-indigo-400/30">
+            <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xxs font-bold uppercase tracking-wider bg-black/55 text-teal-400 border border-teal-500/30">
               <Users className="w-3 h-3" />
               <span>Community</span>
             </span>
@@ -56,7 +55,7 @@ const RankingCard = ({ ranking }) => {
         </div>
 
         {/* Category tag */}
-        <span className="absolute bottom-3 right-3 px-2 py-0.5 rounded bg-slate-950/80 text-xxs font-semibold border border-slate-850/80 text-indigo-400 capitalize">
+        <span className="absolute bottom-3 right-3 px-2 py-0.5 rounded bg-black/55 text-xxs font-semibold border border-slate-800/60 text-slate-350 capitalize">
           {category}
         </span>
       </Link>
@@ -77,7 +76,7 @@ const RankingCard = ({ ranking }) => {
           {tags && tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {tags.slice(0, 3).map((tag, idx) => (
-                <span key={idx} className="text-xxs px-2 py-0.5 rounded bg-slate-950/40 text-slate-400 border border-slate-850/40">
+                <span key={idx} className="text-xxs px-2 py-0.5 rounded bg-slate-950/30 text-slate-450 border border-slate-850/60">
                   #{tag}
                 </span>
               ))}
@@ -90,23 +89,23 @@ const RankingCard = ({ ranking }) => {
           {/* Creator Profile */}
           <Link to={`/profile/${creator?._id}`} className="flex items-center space-x-2">
             <Avatar user={creator} className="w-6 h-6" sizeText="text-[10px]" />
-            <span className="text-xs font-medium text-zinc-400 hover:text-indigo-400 truncate max-w-[95px] transition-colors">
+            <span className="text-xxs uppercase tracking-wider font-semibold text-slate-300 hover:text-indigo-400 truncate max-w-[95px] transition-colors">
               {creator?.name || 'Anonymous'}
             </span>
           </Link>
 
           {/* Stats indicators */}
-          <div className="flex items-center space-x-3 text-xxs">
+          <div className="flex items-center space-x-3 text-xxs text-slate-400">
             <div className="flex items-center space-x-1" title="Views">
-              <Eye className="w-3.5 h-3.5" />
+              <Eye className="w-3.5 h-3.5 text-slate-500" />
               <span>{viewsCount}</span>
             </div>
             <div className="flex items-center space-x-1" title="Likes">
-              <Heart className="w-3.5 h-3.5 text-rose-500/80" />
+              <Heart className="w-3.5 h-3.5 text-slate-500" />
               <span>{likesCount}</span>
             </div>
             <div className="flex items-center space-x-1" title="Bookmarks">
-              <Bookmark className="w-3.5 h-3.5 text-indigo-400/80" />
+              <Bookmark className="w-3.5 h-3.5 text-slate-500" />
               <span>{bookmarksCount}</span>
             </div>
           </div>
