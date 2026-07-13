@@ -336,7 +336,6 @@ const RankingDetail = () => {
         
         <div className="space-y-4">
           {ranking.items && ranking.items.map((item, index) => {
-            const isVoted = votedItems.has(item._id);
             return (
               <motion.div
                 key={item._id}
