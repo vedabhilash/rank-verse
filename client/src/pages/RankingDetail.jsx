@@ -84,7 +84,7 @@ const RankingDetail = () => {
     }
   }, [socket, id, queryClient]);
 
-  // Check if current user liked/bookmarked or voted
+  // Initialize user interaction states from query payload
   useEffect(() => {
     if (ranking) {
       setUserLikes(ranking.userInteractions?.liked || false);
@@ -95,7 +95,7 @@ const RankingDetail = () => {
       setUserBookmarks(false);
       setVotedItems(new Set());
     }
-  }, [ranking]);
+  }, [ranking?._id]); // Only runs on initial fetch of the list
 
   // Likes Mutation
   const toggleLikeMutation = useMutation({
@@ -153,7 +153,19 @@ const RankingDetail = () => {
           }
           return item;
         });
-        return { ...oldData, items: updatedItems };
+        
+        // Keep cached votedItemIds in sync to prevent stale overrides
+        const oldVotedItemIds = oldData.userInteractions?.votedItemIds || [];
+        const updatedVotedItemIds = data.voted
+          ? [...oldVotedItemIds, itemId]
+          : oldVotedItemIds.filter(vId => vId !== itemId);
+
+        const updatedInteractions = {
+          ...oldData.userInteractions,
+          votedItemIds: updatedVotedItemIds,
+        };
+
+        return { ...oldData, items: updatedItems, userInteractions: updatedInteractions };
       });
     },
   });
