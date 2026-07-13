@@ -36,8 +36,7 @@ const RankingCard = ({ ranking }) => {
           alt={title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        {/* Overlay Gradients */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+
 
         {/* Floating Badges */}
         <div className="absolute top-3 left-3 flex flex-col space-y-1.5">
@@ -92,7 +91,7 @@ const RankingCard = ({ ranking }) => {
             <img
               src={creator?.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=rankverse'}
               alt={creator?.name}
-              className="w-6.5 h-6.5 rounded-full object-cover border border-purple-500/60 bg-slate-800"
+              className="w-6.5 h-6.5 rounded-full object-cover border border-slate-800 bg-slate-850"
             />
             <span className="text-xs font-medium text-slate-350 hover:text-indigo-400 truncate max-w-[95px] transition-colors">
               {creator?.name || 'Anonymous'}
