@@ -37,22 +37,7 @@ const server = http.createServer(app);
 // CORS configuration
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow server-to-server or postman/curl requests
-    if (!origin) return callback(null, true);
-
-    const allowedOrigins = [
-      'http://localhost:5173',
-      process.env.CLIENT_URL,
-    ].filter(Boolean);
-
-    // Allow any origin ending with vercel.app
-    const isVercel = /\.vercel\.app$/.test(origin);
-
-    if (allowedOrigins.includes(origin) || isVercel) {
-      callback(null, true);
-    } else {
-      callback(new Error(`Origin ${origin} not allowed by CORS`));
-    }
+    callback(null, true); // Dynamically allow any requesting origin (essential for credentials: true)
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
