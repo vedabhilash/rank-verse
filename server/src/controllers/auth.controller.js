@@ -124,10 +124,14 @@ export const refresh = async (req, res, next) => {
 
     let decoded;
     try {
-      decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'local_jwt_refresh_secret_key_change_me_in_production_67890');
+      const secret = process.env.JWT_REFRESH_SECRET;
+      if (process.env.NODE_ENV === 'production' && !secret) {
+        throw new Error('JWT_REFRESH_SECRET is required in production');
+      }
+      decoded = jwt.verify(refreshToken, secret || 'local_jwt_refresh_secret_key_change_me_in_production_67890');
     } catch (err) {
       res.status(401);
-      return next(new Error('Invalid refresh token'));
+      return next(new Error(err.message || 'Invalid refresh token'));
     }
 
     const user = await User.findById(decoded.id);

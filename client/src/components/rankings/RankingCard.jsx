@@ -90,7 +90,7 @@ const RankingCard = ({ ranking }) => {
           {/* Creator Profile */}
           <Link to={`/profile/${creator?._id}`} className="flex items-center space-x-2">
             <Avatar user={creator} className="w-6 h-6" sizeText="text-[10px]" />
-            <span className="text-xs font-medium text-slate-350 hover:text-indigo-400 truncate max-w-[95px] transition-colors">
+            <span className="text-xs font-medium text-zinc-400 hover:text-indigo-400 truncate max-w-[95px] transition-colors">
               {creator?.name || 'Anonymous'}
             </span>
           </Link>

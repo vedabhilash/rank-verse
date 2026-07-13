@@ -85,19 +85,16 @@ const RankingDetail = () => {
 
   // Check if current user liked/bookmarked or voted
   useEffect(() => {
-    if (user && ranking) {
-      // We can fetch user specifics or query like/bookmark status
-      const checkStatus = async () => {
-        try {
-          // Since we toggle locally and get details from API, let's query lists to see
-          // Or check if user already liked (for simplicity, we track locally in state, or can query endpoints)
-        } catch (e) {
-          console.error(e);
-        }
-      };
-      checkStatus();
+    if (ranking) {
+      setUserLikes(ranking.userInteractions?.liked || false);
+      setUserBookmarks(ranking.userInteractions?.bookmarked || false);
+      setVotedItems(new Set(ranking.userInteractions?.votedItemIds || []));
+    } else {
+      setUserLikes(false);
+      setUserBookmarks(false);
+      setVotedItems(new Set());
     }
-  }, [user, ranking]);
+  }, [ranking]);
 
   // Likes Mutation
   const toggleLikeMutation = useMutation({
@@ -294,7 +291,8 @@ const RankingDetail = () => {
                 if (!user) navigate('/login');
                 else toggleLikeMutation.mutate();
               }}
-              className={`flex items-center space-x-1 px-3 py-1.5 rounded-full border transition-all duration-200 text-xxs ${
+              disabled={toggleLikeMutation.isPending}
+              className={`flex items-center space-x-1 px-3 py-1.5 rounded-full border transition-all duration-200 text-xxs disabled:opacity-50 ${
                 userLikes
                   ? 'bg-rose-500/10 border-rose-500/35 text-rose-400'
                   : 'bg-slate-950/40 border-slate-850/60 hover:text-rose-400'
@@ -310,7 +308,8 @@ const RankingDetail = () => {
                 if (!user) navigate('/login');
                 else toggleBookmarkMutation.mutate();
               }}
-              className={`flex items-center space-x-1 px-3 py-1.5 rounded-full border transition-all duration-200 text-xxs ${
+              disabled={toggleBookmarkMutation.isPending}
+              className={`flex items-center space-x-1 px-3 py-1.5 rounded-full border transition-all duration-200 text-xxs disabled:opacity-50 ${
                 userBookmarks
                   ? 'bg-indigo-500/10 border-indigo-500/35 text-indigo-400'
                   : 'bg-slate-950/40 border-slate-850/60 hover:text-indigo-400'
@@ -387,7 +386,8 @@ const RankingDetail = () => {
                           if (!user) navigate('/login');
                           else toggleVoteMutation.mutate(item._id);
                         }}
-                        className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full font-bold text-xs transition duration-200 ${
+                        disabled={toggleVoteMutation.isPending}
+                        className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full font-bold text-xs transition duration-200 disabled:opacity-50 ${
                           isVoted
                             ? 'bg-emerald-500/10 border border-emerald-500/35 text-emerald-400'
                             : 'bg-indigo-600 hover:bg-indigo-750 text-white shadow shadow-indigo-500/10'

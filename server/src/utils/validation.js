@@ -30,3 +30,13 @@ export const rankingCreateSchema = z.object({
   items: z.array(rankingItemSchema).min(1, 'Ranking must have at least 1 item').max(10, 'Ranking cannot exceed 10 items'),
   isCommunitySourced: z.boolean().optional().default(false),
 });
+
+export const rankingUpdateSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title is too long').trim().optional(),
+  category: z.string().min(1, 'Category is required').trim().optional(),
+  description: z.string().max(1000, 'Description is too long').optional(),
+  tags: z.array(z.string()).optional(),
+  items: z.array(rankingItemSchema).min(1, 'Ranking must have at least 1 item').max(10, 'Ranking cannot exceed 10 items').optional(),
+  isCommunitySourced: z.boolean().optional(),
+  status: z.enum(['draft', 'published', 'removed']).optional(),
+});

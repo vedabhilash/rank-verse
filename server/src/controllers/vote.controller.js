@@ -24,40 +24,62 @@ export const castVote = async (req, res, next) => {
       return next(new Error('Ranking item not found'));
     }
 
-    // 2. Check if vote already exists
-    const existingVote = await Vote.findOne({ user: userId, ranking: rankingId, item: itemId });
+    // 2. Try to delete the vote first (Toggle off)
+    const deleteResult = await Vote.deleteOne({ user: userId, ranking: rankingId, item: itemId });
 
     let voted = false;
+    let newVoteCount = 0;
 
-    if (existingVote) {
-      // User has already voted -> Remove Vote (Toggle off)
-      await Vote.deleteOne({ _id: existingVote._id });
-      item.voteCount = Math.max(0, item.voteCount - 1);
+    if (deleteResult.deletedCount > 0) {
+      // Vote removed! Atomically decrement item voteCount
+      const updatedRanking = await Ranking.findOneAndUpdate(
+        { _id: rankingId, "items._id": itemId },
+        { $inc: { "items.$.voteCount": -1 } },
+        { new: true }
+      );
+      const updatedItem = updatedRanking?.items.id(itemId);
+      newVoteCount = updatedItem ? Math.max(0, updatedItem.voteCount) : 0;
       voted = false;
     } else {
       // User hasn't voted yet -> Add Vote (Toggle on)
-      await Vote.create({ user: userId, ranking: rankingId, item: itemId });
-      item.voteCount += 1;
-      voted = true;
+      try {
+        await Vote.create({ user: userId, ranking: rankingId, item: itemId });
+        
+        const updatedRanking = await Ranking.findOneAndUpdate(
+          { _id: rankingId, "items._id": itemId },
+          { $inc: { "items.$.voteCount": 1 } },
+          { new: true }
+        );
+        const updatedItem = updatedRanking?.items.id(itemId);
+        newVoteCount = updatedItem ? updatedItem.voteCount : 1;
+        voted = true;
+      } catch (err) {
+        if (err.code === 11000) {
+          // Handle concurrent vote insert
+          const currentRanking = await Ranking.findById(rankingId);
+          const currentItem = currentRanking?.items.id(itemId);
+          newVoteCount = currentItem ? currentItem.voteCount : 1;
+          voted = true;
+        } else {
+          throw err;
+        }
+      }
     }
 
-    // 3. Save the modified ranking document
-    await ranking.save();
-
-    // 4. Trigger synchronous aggregation of the community ranking list
+    // 3. Trigger synchronous aggregation of the community ranking list
     // (runs in background so it doesn't block the HTTP response)
     updateCommunityRankingEntry(ranking.category, item.title);
 
-    // 5. Broadcast real-time vote count update to sockets listening to this ranking room
+    // 4. Broadcast real-time vote count update to sockets listening to this ranking room
     broadcastVoteUpdate(rankingId, {
       itemId: item._id,
-      voteCount: item.voteCount,
+      voteCount: newVoteCount,
     });
 
     res.status(200).json({
       success: true,
       voted,
-      voteCount: item.voteCount,
+      voteCount: newVoteCount,
     });
   } catch (error) {
     next(error);

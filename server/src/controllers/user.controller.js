@@ -91,22 +91,22 @@ export const toggleFollowUser = async (req, res, next) => {
     const isFollowing = currentUser.following.includes(followUserId);
 
     if (isFollowing) {
-      // Unfollow
-      currentUser.following.pull(followUserId);
-      userToFollow.followers.pull(currentUserId);
-      await currentUser.save();
-      await userToFollow.save();
+      // Unfollow: pull from both atomically
+      await Promise.all([
+        User.updateOne({ _id: currentUserId }, { $pull: { following: followUserId } }),
+        User.updateOne({ _id: followUserId }, { $pull: { followers: currentUserId } }),
+      ]);
 
       res.status(200).json({
         success: true,
         followed: false,
       });
     } else {
-      // Follow
-      currentUser.following.addToSet(followUserId);
-      userToFollow.followers.addToSet(currentUserId);
-      await currentUser.save();
-      await userToFollow.save();
+      // Follow: addToSet to both atomically
+      await Promise.all([
+        User.updateOne({ _id: currentUserId }, { $addToSet: { following: followUserId } }),
+        User.updateOne({ _id: followUserId }, { $addToSet: { followers: currentUserId } }),
+      ]);
 
       // Trigger follow notification
       await createNotification({

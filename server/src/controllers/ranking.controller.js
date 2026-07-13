@@ -2,7 +2,8 @@ import Ranking from '../models/Ranking.js';
 import User from '../models/User.js';
 import Like from '../models/Like.js';
 import Bookmark from '../models/Bookmark.js';
-import { rankingCreateSchema } from '../utils/validation.js';
+import Vote from '../models/Vote.js';
+import { rankingCreateSchema, rankingUpdateSchema } from '../utils/validation.js';
 import { createNotification } from '../services/notification.service.js';
 import mongoose from 'mongoose';
 
@@ -126,9 +127,28 @@ export const getRankingById = async (req, res, next) => {
       return next(new Error('Ranking not found'));
     }
 
+    let userInteractions = { liked: false, bookmarked: false, votedItemIds: [] };
+
+    if (req.user) {
+      const [liked, bookmarked, votes] = await Promise.all([
+        Like.exists({ user: req.user._id, ranking: ranking._id }),
+        Bookmark.exists({ user: req.user._id, ranking: ranking._id }),
+        Vote.find({ user: req.user._id, ranking: ranking._id }).select('item'),
+      ]);
+
+      userInteractions = {
+        liked: !!liked,
+        bookmarked: !!bookmarked,
+        votedItemIds: votes.map(v => v.item.toString()),
+      };
+    }
+
     res.status(200).json({
       success: true,
-      ranking,
+      ranking: {
+        ...ranking.toObject(),
+        userInteractions,
+      },
     });
   } catch (error) {
     next(error);
@@ -160,18 +180,33 @@ export const updateRanking = async (req, res, next) => {
       return next(new Error('Cannot update a removed ranking'));
     }
 
-    // We can validate partial ranking data, or full data depending on the design. Let's do simple updates
-    const { title, category, description, tags, items, isCommunitySourced, status } = req.body;
+    const parseResult = rankingUpdateSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(400);
+      return next(new Error(parseResult.error.errors.map(e => e.message).join(', ')));
+    }
 
-    if (title) ranking.title = title;
-    if (category) ranking.category = category;
-    if (description) ranking.description = description;
-    if (tags) ranking.tags = tags;
-    if (items) ranking.items = items;
-    if (typeof isCommunitySourced === 'boolean') ranking.isCommunitySourced = isCommunitySourced;
-    if (status) ranking.status = status;
+    const { title, category, description, tags, items, isCommunitySourced, status } = parseResult.data;
 
-    await ranking.save();
+    // Handle soft-removal and decrement stats if marked removed
+    if (status === 'removed' && ranking.status !== 'removed') {
+      ranking.status = 'removed';
+      await ranking.save();
+
+      // Decrement rankingsCreated count for creator
+      await User.findByIdAndUpdate(ranking.creator, {
+        $inc: { 'stats.rankingsCreated': -1 },
+      });
+    } else {
+      if (title) ranking.title = title;
+      if (category) ranking.category = category;
+      if (description) ranking.description = description;
+      if (tags) ranking.tags = tags;
+      if (items) ranking.items = items;
+      if (typeof isCommunitySourced === 'boolean') ranking.isCommunitySourced = isCommunitySourced;
+      if (status) ranking.status = status;
+      await ranking.save();
+    }
 
     res.status(200).json({
       success: true,
@@ -234,16 +269,16 @@ export const toggleLike = async (req, res, next) => {
       return next(new Error('Ranking not found'));
     }
 
-    const alreadyLiked = await Like.findOne({ user: req.user._id, ranking: id });
+    const deleteResult = await Like.deleteOne({ user: req.user._id, ranking: id });
 
-    if (alreadyLiked) {
+    if (deleteResult.deletedCount > 0) {
       // Unlike
-      await Like.deleteOne({ _id: alreadyLiked._id });
+      const updatedRanking = await Ranking.findByIdAndUpdate(
+        id,
+        { $inc: { likesCount: -1 } },
+        { new: true }
+      );
       
-      ranking.likesCount = Math.max(0, ranking.likesCount - 1);
-      await ranking.save();
-
-      // Decrement creator's stats
       await User.findByIdAndUpdate(ranking.creator, {
         $inc: { 'stats.totalLikes': -1 },
       });
@@ -251,33 +286,46 @@ export const toggleLike = async (req, res, next) => {
       res.status(200).json({
         success: true,
         liked: false,
-        likesCount: ranking.likesCount,
+        likesCount: updatedRanking ? Math.max(0, updatedRanking.likesCount) : 0,
       });
     } else {
       // Like
-      await Like.create({ user: req.user._id, ranking: id });
+      try {
+        await Like.create({ user: req.user._id, ranking: id });
 
-      ranking.likesCount += 1;
-      await ranking.save();
+        const updatedRanking = await Ranking.findByIdAndUpdate(
+          id,
+          { $inc: { likesCount: 1 } },
+          { new: true }
+        );
 
-      // Increment creator's stats
-      await User.findByIdAndUpdate(ranking.creator, {
-        $inc: { 'stats.totalLikes': 1 },
-      });
+        await User.findByIdAndUpdate(ranking.creator, {
+          $inc: { 'stats.totalLikes': 1 },
+        });
 
-      // Send Notification to creator
-      await createNotification({
-        recipient: ranking.creator,
-        type: 'like',
-        actor: req.user._id,
-        ranking: ranking._id,
-      });
+        await createNotification({
+          recipient: ranking.creator,
+          type: 'like',
+          actor: req.user._id,
+          ranking: ranking._id,
+        });
 
-      res.status(200).json({
-        success: true,
-        liked: true,
-        likesCount: ranking.likesCount,
-      });
+        res.status(200).json({
+          success: true,
+          liked: true,
+          likesCount: updatedRanking ? updatedRanking.likesCount : 1,
+        });
+      } catch (err) {
+        if (err.code === 11000) {
+          const currentRanking = await Ranking.findById(id);
+          return res.status(200).json({
+            success: true,
+            liked: true,
+            likesCount: currentRanking ? currentRanking.likesCount : 1,
+          });
+        }
+        throw err;
+      }
     }
   } catch (error) {
     next(error);
@@ -297,32 +345,48 @@ export const toggleBookmark = async (req, res, next) => {
       return next(new Error('Ranking not found'));
     }
 
-    const alreadyBookmarked = await Bookmark.findOne({ user: req.user._id, ranking: id });
+    const deleteResult = await Bookmark.deleteOne({ user: req.user._id, ranking: id });
 
-    if (alreadyBookmarked) {
+    if (deleteResult.deletedCount > 0) {
       // Remove bookmark
-      await Bookmark.deleteOne({ _id: alreadyBookmarked._id });
-      
-      ranking.bookmarksCount = Math.max(0, ranking.bookmarksCount - 1);
-      await ranking.save();
+      const updatedRanking = await Ranking.findByIdAndUpdate(
+        id,
+        { $inc: { bookmarksCount: -1 } },
+        { new: true }
+      );
 
       res.status(200).json({
         success: true,
         bookmarked: false,
-        bookmarksCount: ranking.bookmarksCount,
+        bookmarksCount: updatedRanking ? Math.max(0, updatedRanking.bookmarksCount) : 0,
       });
     } else {
       // Add bookmark
-      await Bookmark.create({ user: req.user._id, ranking: id });
+      try {
+        await Bookmark.create({ user: req.user._id, ranking: id });
 
-      ranking.bookmarksCount += 1;
-      await ranking.save();
+        const updatedRanking = await Ranking.findByIdAndUpdate(
+          id,
+          { $inc: { bookmarksCount: 1 } },
+          { new: true }
+        );
 
-      res.status(200).json({
-        success: true,
-        bookmarked: true,
-        bookmarksCount: ranking.bookmarksCount,
-      });
+        res.status(200).json({
+          success: true,
+          bookmarked: true,
+          bookmarksCount: updatedRanking ? updatedRanking.bookmarksCount : 1,
+        });
+      } catch (err) {
+        if (err.code === 11000) {
+          const currentRanking = await Ranking.findById(id);
+          return res.status(200).json({
+            success: true,
+            bookmarked: true,
+            bookmarksCount: currentRanking ? currentRanking.bookmarksCount : 1,
+          });
+        }
+        throw err;
+      }
     }
   } catch (error) {
     next(error);
@@ -342,18 +406,20 @@ export const incrementViews = async (req, res, next) => {
       return next(new Error('Ranking not found'));
     }
 
-    ranking.viewsCount += 1;
-    await ranking.save();
+    const cookieName = `viewed_ranking_${id}`;
 
-    // Increment creator's total views
-    await User.findByIdAndUpdate(ranking.creator, {
-      $inc: { 'stats.totalViews': 0.1 }, // we can count 1 view or fractional view, let's count 1 full view for totalViews
-    });
-    
-    // Actually, let's increment totalViews by 1 in creator stats
-    await User.findByIdAndUpdate(ranking.creator, {
-      $inc: { 'stats.totalViews': 1 },
-    });
+    if (!req.cookies[cookieName]) {
+      ranking.viewsCount += 1;
+      await ranking.save();
+
+      // Increment creator's total views by 1
+      await User.findByIdAndUpdate(ranking.creator, {
+        $inc: { 'stats.totalViews': 1 },
+      });
+
+      // Set cookie for 15 minutes (900000 ms) to deduplicate views
+      res.cookie(cookieName, 'true', { maxAge: 900000, httpOnly: true });
+    }
 
     res.status(200).json({
       success: true,

@@ -11,7 +11,7 @@ import {
 } from '../controllers/ranking.controller.js';
 import { castVote } from '../controllers/vote.controller.js';
 import { createComment, getComments } from '../controllers/comment.controller.js';
-import { protect } from '../middleware/auth.middleware.js';
+import { protect, optionalProtect } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ router.route('/')
   .get(getRankings);
 
 router.route('/:id')
-  .get(getRankingById)
+  .get(optionalProtect, getRankingById)
   .patch(protect, updateRanking)
   .delete(protect, deleteRanking);
 

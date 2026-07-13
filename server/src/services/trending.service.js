@@ -32,16 +32,23 @@ export const recalculateAllTrendingScores = async () => {
     
     // Process only published rankings
     const rankings = await Ranking.find({ status: 'published' });
-    
-    let updatedCount = 0;
-    for (const ranking of rankings) {
-      const score = calculateTrendingScore(ranking);
-      ranking.trendingScore = score;
-      await ranking.save();
-      updatedCount++;
+    if (rankings.length === 0) {
+      console.log('No published rankings to update.');
+      return;
     }
 
-    console.log(`Successfully updated trending scores for ${updatedCount} rankings.`);
+    const operations = rankings.map((ranking) => {
+      const score = calculateTrendingScore(ranking);
+      return {
+        updateOne: {
+          filter: { _id: ranking._id },
+          update: { $set: { trendingScore: score } },
+        },
+      };
+    });
+
+    const result = await Ranking.bulkWrite(operations);
+    console.log(`Successfully updated trending scores for ${result.modifiedCount || result.nModified || 0} rankings.`);
   } catch (error) {
     console.error('Error in recalculating trending scores cron job:', error);
   }

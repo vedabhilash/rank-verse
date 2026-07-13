@@ -37,7 +37,17 @@ const server = http.createServer(app);
 // CORS configuration
 const corsOptions = {
   origin: (origin, callback) => {
-    callback(null, true); // Dynamically allow any requesting origin (essential for credentials: true)
+    const allowedOrigins = [
+      process.env.CLIENT_URL,
+      'http://localhost:5173',
+      'http://127.0.0.1:5173'
+    ].filter(Boolean);
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
