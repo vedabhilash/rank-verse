@@ -28,6 +28,19 @@ const ImageSourcePicker = ({ itemTitle, rankingCategory, currentImage, onSelectI
     }
   }, [itemTitle]);
 
+  // Reset internal picker states when parent resets currentImage
+  useEffect(() => {
+    if (!currentImage) {
+      setSelectedFile(null);
+      setUploadPreview('');
+      setSelectedImageUrl('');
+      setGeneratedPreview('');
+      setError('');
+    } else {
+      setSelectedImageUrl(currentImage.url || '');
+    }
+  }, [currentImage]);
+
   const handleError = (err) => {
     const msg = err.response?.data?.message || err.message || 'Operation failed';
     setError(msg);
