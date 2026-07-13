@@ -143,8 +143,14 @@ export const generateImage = async (title, category) => {
   // If no provider key or AI generation failed, fetch a matching image from Pexels/Pixabay to look authentic
   if (!imageUrl) {
     try {
-      console.log(`Using mock AI Image Generation. Searching Pexels for "${title} ${category}"`);
-      const searchResults = await searchImages(`${title} ${category}`);
+      console.log(`Using mock AI Image Generation. Searching Pexels for "${title}"`);
+      let searchResults = await searchImages(title);
+      
+      // Fallback to title + category if title alone returned nothing
+      if (!searchResults || searchResults.length === 0) {
+        searchResults = await searchImages(`${title} ${category}`);
+      }
+
       if (searchResults && searchResults.length > 0) {
         imageUrl = searchResults[0].url;
       }
