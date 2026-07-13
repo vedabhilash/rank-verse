@@ -22,7 +22,7 @@ const RankingDetail = () => {
   const [replyToId, setReplyToId] = useState(null);
   const [userLikes, setUserLikes] = useState(false);
   const [userBookmarks, setUserBookmarks] = useState(false);
-  const [votedItems, setVotedItems] = useState(new Set());
+  const [votedItems, setVotedItems] = useState({});
 
   // 1. Fetch ranking details
   const { data: ranking, isLoading, isError } = useQuery({
@@ -89,11 +89,11 @@ const RankingDetail = () => {
     if (ranking) {
       setUserLikes(ranking.userInteractions?.liked || false);
       setUserBookmarks(ranking.userInteractions?.bookmarked || false);
-      setVotedItems(new Set(ranking.userInteractions?.votedItemIds || []));
+      setVotedItems(ranking.userInteractions?.votedItems || {});
     } else {
       setUserLikes(false);
       setUserBookmarks(false);
-      setVotedItems(new Set());
+      setVotedItems({});
     }
   }, [ranking]);
 
@@ -129,18 +129,18 @@ const RankingDetail = () => {
 
   // Voting Mutation
   const toggleVoteMutation = useMutation({
-    mutationFn: async (itemId) => {
-      const response = await api.post(`/rankings/${ranking._id}/items/${itemId}/vote`);
-      return { itemId, data: response.data };
+    mutationFn: async ({ itemId, voteType }) => {
+      const response = await api.post(`/rankings/${ranking._id}/items/${itemId}/vote`, { type: voteType });
+      return { itemId, voteType, data: response.data };
     },
     onSuccess: ({ itemId, data }) => {
       // Toggle voted item locally
       setVotedItems(prev => {
-        const next = new Set(prev);
+        const next = { ...prev };
         if (data.voted) {
-          next.add(itemId);
+          next[itemId] = data.voteType;
         } else {
-          next.delete(itemId);
+          delete next[itemId];
         }
         return next;
       });
@@ -382,37 +382,57 @@ const RankingDetail = () => {
                     </div>
 
                     {ranking.isCommunitySourced && (() => {
-                      const isThisItemLoading = toggleVoteMutation.isPending && toggleVoteMutation.variables === item._id;
+                      const activeVoteType = votedItems[item._id]; // 'upvote', 'downvote', or undefined
+                      
+                      const isThisItemLoading = toggleVoteMutation.isPending && toggleVoteMutation.variables?.itemId === item._id;
+                      const loadingType = isThisItemLoading ? toggleVoteMutation.variables?.voteType : null;
+
                       return (
-                        <button
-                          onClick={() => {
-                            if (!user) navigate('/login');
-                            else toggleVoteMutation.mutate(item._id);
-                          }}
-                          disabled={toggleVoteMutation.isPending}
-                          className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full font-bold text-xs transition duration-200 disabled:opacity-50 ${
-                            isVoted
-                              ? 'bg-emerald-500/10 border border-emerald-500/35 text-emerald-400'
-                              : 'bg-indigo-600 hover:bg-indigo-750 text-white shadow shadow-indigo-500/10'
-                          }`}
-                        >
-                          {isThisItemLoading ? (
-                            <>
+                        <div className="flex items-center space-x-2">
+                          {/* Upvote Button */}
+                          <button
+                            onClick={() => {
+                              if (!user) navigate('/login');
+                              else toggleVoteMutation.mutate({ itemId: item._id, voteType: 'upvote' });
+                            }}
+                            disabled={toggleVoteMutation.isPending}
+                            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full font-bold text-xs transition duration-200 disabled:opacity-50 ${
+                              activeVoteType === 'upvote'
+                                ? 'bg-emerald-500/15 border border-emerald-500/40 text-emerald-400'
+                                : 'bg-slate-950/40 border border-slate-850/60 hover:text-emerald-450 text-slate-400'
+                            }`}
+                            title="Upvote this item"
+                          >
+                            {loadingType === 'upvote' ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              <span>Voting...</span>
-                            </>
-                          ) : isVoted ? (
-                            <>
-                              <Check className="w-3.5 h-3.5" />
-                              <span>Devote</span>
-                            </>
-                          ) : (
-                            <>
+                            ) : (
                               <ArrowUpCircle className="w-3.5 h-3.5" />
-                              <span>Upvote</span>
-                            </>
-                          )}
-                        </button>
+                            )}
+                            <span>Upvote</span>
+                          </button>
+
+                          {/* Downvote Button */}
+                          <button
+                            onClick={() => {
+                              if (!user) navigate('/login');
+                              else toggleVoteMutation.mutate({ itemId: item._id, voteType: 'downvote' });
+                            }}
+                            disabled={toggleVoteMutation.isPending}
+                            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full font-bold text-xs transition duration-200 disabled:opacity-50 ${
+                              activeVoteType === 'downvote'
+                                ? 'bg-rose-500/15 border border-rose-500/40 text-rose-450'
+                                : 'bg-slate-950/40 border border-slate-850/60 hover:text-rose-450 text-slate-400'
+                            }`}
+                            title="Downvote this item"
+                          >
+                            {loadingType === 'downvote' ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <ArrowUpCircle className="w-3.5 h-3.5 rotate-180" />
+                            )}
+                            <span>Downvote</span>
+                          </button>
+                        </div>
                       );
                     })()}
                   </div>
