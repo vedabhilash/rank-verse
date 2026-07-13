@@ -9,6 +9,7 @@ import {
   MessageSquare, Send, Trash2, ArrowUpCircle, Check 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Avatar from '../components/common/Avatar';
 
 const RankingDetail = () => {
   const { id } = useParams();
@@ -264,11 +265,7 @@ const RankingDetail = () => {
         <div className="mt-6 pt-4 border-t border-slate-850/80 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center space-x-3">
             <Link to={`/profile/${ranking.creator?._id}`} className="flex items-center space-x-2 group">
-              <img
-                src={ranking.creator?.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=rankverse'}
-                alt=""
-                className="w-8 h-8 rounded-full border border-purple-500/50 bg-slate-800"
-              />
+              <Avatar user={ranking.creator} className="w-8 h-8" sizeText="text-xs" />
               <div>
                 <p className="text-xs font-bold text-slate-200 group-hover:text-indigo-400 transition-colors">
                   {ranking.creator?.name || 'Anonymous'}
@@ -471,11 +468,7 @@ const RankingDetail = () => {
               <div key={comment._id} className="space-y-3 border-b border-slate-850/45 pb-4 last:border-0 last:pb-0">
                 <div className="flex items-start justify-between">
                   <div className="flex space-x-3">
-                    <img
-                      src={comment.author?.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=rankverse'}
-                      alt=""
-                      className="w-7 h-7 rounded-full bg-slate-800 border border-purple-550/40"
-                    />
+                    <Avatar user={comment.author} className="w-7 h-7" sizeText="text-[10px]" />
                     <div>
                       <div className="flex items-center space-x-2 text-xxs">
                         <span className="font-bold text-slate-200">{comment.author?.name}</span>
@@ -511,11 +504,7 @@ const RankingDetail = () => {
                 {comments.filter(c => c.parentComment === comment._id).map((reply) => (
                   <div key={reply._id} className="pl-10 flex items-start justify-between group">
                     <div className="flex space-x-2">
-                      <img
-                        src={reply.author?.avatarUrl || 'https://api.dicebear.com/7.x/bottts&seed=rankverse'}
-                        alt=""
-                        className="w-5.5 h-5.5 rounded-full bg-slate-800"
-                      />
+                      <Avatar user={reply.author} className="w-5.5 h-5.5" sizeText="text-[9px]" />
                       <div>
                         <div className="flex items-center space-x-2 text-xxs">
                           <span className="font-bold text-slate-200">{reply.author?.name}</span>

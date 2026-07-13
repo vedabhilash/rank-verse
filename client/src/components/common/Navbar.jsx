@@ -8,6 +8,8 @@ import {
   Bell, Settings, LogOut, ShieldAlert, User as UserIcon 
 } from 'lucide-react';
 
+import Avatar from './Avatar';
+
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { socket } = useSocket();
@@ -132,11 +134,7 @@ const Navbar = () => {
                     onClick={() => setDropdownOpen(!dropdownOpen)}
                     className="flex items-center space-x-2 focus:outline-none"
                   >
-                    <img
-                      src={user.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=rankverse'}
-                      alt="User Avatar"
-                      className="w-9 h-9 rounded-full object-cover border-2 border-purple-500 bg-slate-800"
-                    />
+                    <Avatar user={user} className="w-9 h-9" sizeText="text-sm" />
                   </button>
 
                   {/* Dropdown Box */}

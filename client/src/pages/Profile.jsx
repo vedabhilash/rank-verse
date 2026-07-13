@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import RankingCard from '../components/rankings/RankingCard';
 import { UserPlus, UserMinus, Heart, Eye, Award, Settings, FolderHeart } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Avatar from '../components/common/Avatar';
 
 const Profile = () => {
   const { id } = useParams();
@@ -81,11 +82,7 @@ const Profile = () => {
 
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 relative z-10">
           <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6 text-center md:text-left">
-            <img
-              src={profile.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=rankverse'}
-              alt={profile.name}
-              className="w-24 h-24 rounded-full object-cover border-4 border-indigo-500/80 bg-slate-800"
-            />
+            <Avatar user={profile} className="w-24 h-24" sizeText="text-3xl" />
             
             <div className="space-y-2.5">
               <h1 className="text-2xl font-black text-slate-100 flex items-center justify-center md:justify-start space-x-2">

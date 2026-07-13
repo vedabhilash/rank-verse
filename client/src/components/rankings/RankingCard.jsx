@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Eye, Bookmark, Award, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Avatar from '../common/Avatar';
 
 const RankingCard = ({ ranking }) => {
   const {
@@ -88,11 +89,7 @@ const RankingCard = ({ ranking }) => {
         <div className="mt-5 pt-4 border-t border-slate-850/80 flex items-center justify-between text-slate-400">
           {/* Creator Profile */}
           <Link to={`/profile/${creator?._id}`} className="flex items-center space-x-2">
-            <img
-              src={creator?.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=rankverse'}
-              alt={creator?.name}
-              className="w-6.5 h-6.5 rounded-full object-cover border border-slate-800 bg-slate-850"
-            />
+            <Avatar user={creator} className="w-6 h-6" sizeText="text-[10px]" />
             <span className="text-xs font-medium text-slate-350 hover:text-indigo-400 truncate max-w-[95px] transition-colors">
               {creator?.name || 'Anonymous'}
             </span>
