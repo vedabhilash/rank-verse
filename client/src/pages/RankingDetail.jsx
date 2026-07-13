@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { 
   Heart, Eye, Bookmark, Share2, Award, Users, 
-  MessageSquare, Send, Trash2, ArrowUpCircle, Check 
+  MessageSquare, Send, Trash2, ArrowUpCircle, Check, Loader2 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Avatar from '../components/common/Avatar';
@@ -380,32 +380,40 @@ const RankingDetail = () => {
                       </span>
                     </div>
 
-                    {ranking.isCommunitySourced && (
-                      <button
-                        onClick={() => {
-                          if (!user) navigate('/login');
-                          else toggleVoteMutation.mutate(item._id);
-                        }}
-                        disabled={toggleVoteMutation.isPending}
-                        className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full font-bold text-xs transition duration-200 disabled:opacity-50 ${
-                          isVoted
-                            ? 'bg-emerald-500/10 border border-emerald-500/35 text-emerald-400'
-                            : 'bg-indigo-600 hover:bg-indigo-750 text-white shadow shadow-indigo-500/10'
-                        }`}
-                      >
-                        {isVoted ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 animate-bounce" />
-                            <span>Voted</span>
-                          </>
-                        ) : (
-                          <>
-                            <ArrowUpCircle className="w-3.5 h-3.5" />
-                            <span>Upvote</span>
-                          </>
-                        )}
-                      </button>
-                    )}
+                    {ranking.isCommunitySourced && (() => {
+                      const isThisItemLoading = toggleVoteMutation.isPending && toggleVoteMutation.variables === item._id;
+                      return (
+                        <button
+                          onClick={() => {
+                            if (!user) navigate('/login');
+                            else toggleVoteMutation.mutate(item._id);
+                          }}
+                          disabled={toggleVoteMutation.isPending}
+                          className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full font-bold text-xs transition duration-200 disabled:opacity-50 ${
+                            isVoted
+                              ? 'bg-emerald-500/10 border border-emerald-500/35 text-emerald-400'
+                              : 'bg-indigo-600 hover:bg-indigo-750 text-white shadow shadow-indigo-500/10'
+                          }`}
+                        >
+                          {isThisItemLoading ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Voting...</span>
+                            </>
+                          ) : isVoted ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 animate-bounce" />
+                              <span>Voted</span>
+                            </>
+                          ) : (
+                            <>
+                              <ArrowUpCircle className="w-3.5 h-3.5" />
+                              <span>Upvote</span>
+                            </>
+                          )}
+                        </button>
+                      );
+                    })()}
                   </div>
                 </div>
               </motion.div>
