@@ -10,12 +10,6 @@ export const castVote = async (req, res, next) => {
   try {
     const { id: rankingId, itemId } = req.params;
     const userId = req.user._id;
-    const { type: voteType } = req.body;
-
-    if (voteType !== 'upvote' && voteType !== 'downvote') {
-      res.status(400);
-      return next(new Error('Invalid vote type. Must be upvote or downvote.'));
-    }
 
     // 1. Fetch ranking and check item existence
     const ranking = await Ranking.findById(rankingId);
@@ -30,74 +24,62 @@ export const castVote = async (req, res, next) => {
       return next(new Error('Ranking item not found'));
     }
 
-    // 2. Fetch existing vote for the user on this item
-    const existingVote = await Vote.findOne({ user: userId, ranking: rankingId, item: itemId });
+    // 2. Try to delete the vote first (Toggle off)
+    const deleteResult = await Vote.deleteOne({ user: userId, ranking: rankingId, item: itemId });
 
     let voted = false;
-    let netChange = 0;
-    let finalVoteType = null;
+    let newVoteCount = 0;
 
-    if (existingVote) {
-      if (existingVote.type === voteType) {
-        // Toggle off (remove vote)
-        await Vote.deleteOne({ _id: existingVote._id });
-        netChange = (voteType === 'upvote') ? -1 : 1;
-        voted = false;
-        finalVoteType = null;
-      } else {
-        // Switch vote type
-        existingVote.type = voteType;
-        await existingVote.save();
-        netChange = (voteType === 'upvote') ? 2 : -2;
-        voted = true;
-        finalVoteType = voteType;
-      }
+    if (deleteResult.deletedCount > 0) {
+      // Vote removed! Atomically decrement item voteCount
+      const updatedRanking = await Ranking.findOneAndUpdate(
+        { _id: rankingId, "items._id": itemId },
+        { $inc: { "items.$.voteCount": -1 } },
+        { new: true }
+      );
+      const updatedItem = updatedRanking?.items.id(itemId);
+      newVoteCount = updatedItem ? Math.max(0, updatedItem.voteCount) : 0;
+      voted = false;
     } else {
-      // New vote
+      // User hasn't voted yet -> Add Vote (Toggle on)
       try {
-        await Vote.create({ user: userId, ranking: rankingId, item: itemId, type: voteType });
-        netChange = (voteType === 'upvote') ? 1 : -1;
+        await Vote.create({ user: userId, ranking: rankingId, item: itemId });
+        
+        const updatedRanking = await Ranking.findOneAndUpdate(
+          { _id: rankingId, "items._id": itemId },
+          { $inc: { "items.$.voteCount": 1 } },
+          { new: true }
+        );
+        const updatedItem = updatedRanking?.items.id(itemId);
+        newVoteCount = updatedItem ? updatedItem.voteCount : 1;
         voted = true;
-        finalVoteType = voteType;
       } catch (err) {
         if (err.code === 11000) {
-          res.status(409);
-          return next(new Error('Concurrent vote action. Please retry.'));
+          // Handle concurrent vote insert
+          const currentRanking = await Ranking.findById(rankingId);
+          const currentItem = currentRanking?.items.id(itemId);
+          newVoteCount = currentItem ? currentItem.voteCount : 1;
+          voted = true;
+        } else {
+          throw err;
         }
-        throw err;
       }
     }
 
-    // 3. Atomically update the item's voteCount
-    const updatedRanking = await Ranking.findOneAndUpdate(
-      { _id: rankingId, "items._id": itemId },
-      { $inc: { "items.$.voteCount": netChange } },
-      { new: true }
-    );
-
-    // 4. Ensure voteCount never goes below 0 (clamping)
-    let updatedItem = updatedRanking?.items.id(itemId);
-    if (updatedItem && updatedItem.voteCount < 0) {
-      updatedItem.voteCount = 0;
-      await updatedRanking.save();
-    }
-
-    const finalVoteCount = updatedItem ? updatedItem.voteCount : 0;
-
-    // 5. Trigger synchronous aggregation of the community ranking list
+    // 3. Trigger synchronous aggregation of the community ranking list
+    // (runs in background so it doesn't block the HTTP response)
     updateCommunityRankingEntry(ranking.category, item.title);
 
-    // 6. Broadcast real-time vote count update to sockets listening to this ranking room
+    // 4. Broadcast real-time vote count update to sockets listening to this ranking room
     broadcastVoteUpdate(rankingId, {
       itemId: item._id,
-      voteCount: finalVoteCount,
+      voteCount: newVoteCount,
     });
 
     res.status(200).json({
       success: true,
       voted,
-      voteType: finalVoteType,
-      voteCount: finalVoteCount,
+      voteCount: newVoteCount,
     });
   } catch (error) {
     next(error);

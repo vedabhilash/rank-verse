@@ -16,11 +16,6 @@ const voteSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
-    type: {
-      type: String,
-      enum: ['upvote', 'downvote'],
-      required: true,
-    },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },
