@@ -386,6 +386,26 @@ const RankingDetail = () => {
                       const isThisItemLoading = toggleVoteMutation.isPending && toggleVoteMutation.variables?.itemId === item._id;
                       const loadingType = isThisItemLoading ? toggleVoteMutation.variables?.voteType : null;
 
+                      // Upvote Label logic
+                      let upvoteLabel = 'Upvote';
+                      if (loadingType === 'upvote') {
+                        upvoteLabel = 'Voting...';
+                      } else if (activeVoteType === 'upvote') {
+                        upvoteLabel = 'Remove Upvote';
+                      } else if (activeVoteType === 'downvote') {
+                        upvoteLabel = 'Switch to Upvote';
+                      }
+
+                      // Downvote Label logic
+                      let downvoteLabel = 'Downvote';
+                      if (loadingType === 'downvote') {
+                        downvoteLabel = 'Voting...';
+                      } else if (activeVoteType === 'upvote') {
+                        downvoteLabel = 'Switch to Downvote';
+                      } else if (activeVoteType === 'downvote') {
+                        downvoteLabel = 'Remove Downvote';
+                      }
+
                       return (
                         <div className="flex items-center space-x-2">
                           {/* Upvote Button */}
@@ -400,14 +420,14 @@ const RankingDetail = () => {
                                 ? 'bg-emerald-500/15 border border-emerald-500/40 text-emerald-400'
                                 : 'bg-slate-950/40 border border-slate-850/60 hover:text-emerald-450 text-slate-400'
                             }`}
-                            title="Upvote this item"
+                            title={upvoteLabel}
                           >
                             {loadingType === 'upvote' ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
                             ) : (
                               <ArrowUpCircle className="w-3.5 h-3.5" />
                             )}
-                            <span>Upvote</span>
+                            <span>{upvoteLabel}</span>
                           </button>
 
                           {/* Downvote Button */}
@@ -422,14 +442,14 @@ const RankingDetail = () => {
                                 ? 'bg-rose-500/15 border border-rose-500/40 text-rose-450'
                                 : 'bg-slate-950/40 border border-slate-850/60 hover:text-rose-450 text-slate-400'
                             }`}
-                            title="Downvote this item"
+                            title={downvoteLabel}
                           >
                             {loadingType === 'downvote' ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
                             ) : (
                               <ArrowUpCircle className="w-3.5 h-3.5 rotate-180" />
                             )}
-                            <span>Downvote</span>
+                            <span>{downvoteLabel}</span>
                           </button>
                         </div>
                       );
