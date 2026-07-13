@@ -127,24 +127,19 @@ export const getRankingById = async (req, res, next) => {
       return next(new Error('Ranking not found'));
     }
 
-    let userInteractions = { liked: false, bookmarked: false, votedItems: {} };
+    let userInteractions = { liked: false, bookmarked: false, votedItemIds: [] };
 
     if (req.user) {
       const [liked, bookmarked, votes] = await Promise.all([
         Like.exists({ user: req.user._id, ranking: ranking._id }),
         Bookmark.exists({ user: req.user._id, ranking: ranking._id }),
-        Vote.find({ user: req.user._id, ranking: ranking._id }).select('item type'),
+        Vote.find({ user: req.user._id, ranking: ranking._id }).select('item'),
       ]);
 
       userInteractions = {
         liked: !!liked,
         bookmarked: !!bookmarked,
-        votedItems: votes.reduce((acc, v) => {
-          if (v.item) {
-            acc[v.item.toString()] = v.type || 'upvote';
-          }
-          return acc;
-        }, {}),
+        votedItemIds: votes.map(v => v.item.toString()),
       };
     }
 

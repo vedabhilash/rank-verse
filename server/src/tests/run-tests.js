@@ -62,7 +62,6 @@ const runTests = async () => {
       user: userA._id,
       ranking: ranking._id,
       item: itemAId,
-      type: 'upvote',
     });
 
     // Try to cast second vote on same item by same user (should fail due to compound unique index)
@@ -71,7 +70,6 @@ const runTests = async () => {
         user: userA._id,
         ranking: ranking._id,
         item: itemAId,
-        type: 'upvote',
       });
       assert.fail('Should have failed compound unique constraint on second vote');
     } catch (err) {
@@ -105,7 +103,6 @@ const runTests = async () => {
       user: userB._id,
       ranking: rankingB._id,
       item: itemBId,
-      type: 'upvote',
     });
 
     // Trigger community aggregation calculations for both items
