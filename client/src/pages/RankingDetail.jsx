@@ -467,7 +467,11 @@ const RankingDetail = () => {
               disabled={!user || !commentText.trim() || addCommentMutation.isPending}
               className="absolute inset-y-0 right-2 pr-3 flex items-center text-indigo-500 disabled:opacity-40"
             >
-              <Send className="w-4 h-4" />
+              {addCommentMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
             </button>
           </div>
         </form>
@@ -506,14 +510,22 @@ const RankingDetail = () => {
                     >
                       Reply
                     </button>
-                    {(user && (comment.author?._id === user._id || user.role === 'admin')) && (
-                      <button
-                        onClick={() => deleteCommentMutation.mutate(comment._id)}
-                        className="text-rose-500 hover:bg-rose-500/10 p-1 rounded"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                    {(user && (comment.author?._id === user._id || user.role === 'admin')) && (() => {
+                      const isDeleting = deleteCommentMutation.isPending && deleteCommentMutation.variables === comment._id;
+                      return (
+                        <button
+                          onClick={() => deleteCommentMutation.mutate(comment._id)}
+                          disabled={deleteCommentMutation.isPending}
+                          className="text-rose-500 hover:bg-rose-500/10 p-1 rounded disabled:opacity-45"
+                        >
+                          {isDeleting ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -534,14 +546,24 @@ const RankingDetail = () => {
                       </div>
                     </div>
 
-                    {(user && (reply.author?._id === user._id || user.role === 'admin')) && (
-                      <button
-                        onClick={() => deleteCommentMutation.mutate(reply._id)}
-                        className="text-rose-550 opacity-0 group-hover:opacity-100 hover:bg-rose-500/10 p-1 rounded transition"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                    {(user && (reply.author?._id === user._id || user.role === 'admin')) && (() => {
+                      const isReplyDeleting = deleteCommentMutation.isPending && deleteCommentMutation.variables === reply._id;
+                      return (
+                        <button
+                          onClick={() => deleteCommentMutation.mutate(reply._id)}
+                          disabled={deleteCommentMutation.isPending}
+                          className={`text-rose-555 hover:bg-rose-500/10 p-1 rounded transition disabled:opacity-45 ${
+                            isReplyDeleting ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                          }`}
+                        >
+                          {isReplyDeleting ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      );
+                    })()}
                   </div>
                 ))}
               </div>
