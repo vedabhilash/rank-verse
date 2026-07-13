@@ -13,7 +13,7 @@ import Avatar from '../components/common/Avatar';
 
 const RankingDetail = () => {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { joinRankingRoom, leaveRankingRoom, socket } = useSocket();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -31,6 +31,7 @@ const RankingDetail = () => {
       const response = await api.get(`/rankings/${id}`);
       return response.data.ranking;
     },
+    enabled: !authLoading,
   });
 
   // 2. Fetch comments list
