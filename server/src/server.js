@@ -64,6 +64,11 @@ app.use('/api/v1/comments', commentRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/admin', adminRoutes);
 
+// Root Health Route for Render
+app.get('/', (req, res) => {
+  res.status(200).send('RankVerse Express Server is running.');
+});
+
 // Base Health Check Route
 app.get('/api/v1/health', (req, res) => {
   res.status(200).json({
