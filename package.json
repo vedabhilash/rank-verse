@@ -1,0 +1,17 @@
+{
+  "name": "rankverse",
+  "version": "1.0.0",
+  "description": "RankVerse: AI-Powered Community Ranking Platform",
+  "main": "server/src/server.js",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
+    "server": "npm run dev --prefix server",
+    "client": "npm run dev --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build:client": "npm run build --prefix client",
+    "start": "node server/src/server.js"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
