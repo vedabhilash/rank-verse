@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import RankingCard from '../components/rankings/RankingCard';
 import { Search, SlidersHorizontal, Library, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -24,10 +25,20 @@ const sortOptions = [
 ];
 
 const Explore = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sortParam = searchParams.get('sort') || 'latest';
+  const categoryParam = searchParams.get('category') || '';
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeCategory, setActiveCategory] = useState('');
-  const [activeSort, setActiveSort] = useState('latest');
+  const [activeCategory, setActiveCategory] = useState(categoryParam);
+  const [activeSort, setActiveSort] = useState(sortParam);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Sync state with URL search params changes (e.g., clicking navbar links)
+  useEffect(() => {
+    setActiveSort(searchParams.get('sort') || 'latest');
+    setActiveCategory(searchParams.get('category') || '');
+  }, [searchParams]);
 
   // We will pass values to API query
   const { data, isLoading, isError, refetch } = useQuery({
@@ -55,11 +66,20 @@ const Explore = () => {
   const handleCategorySelect = (catId) => {
     setActiveCategory(catId);
     setCurrentPage(1);
+    setSearchParams(prev => {
+      if (catId) prev.set('category', catId);
+      else prev.delete('category');
+      return prev;
+    });
   };
 
   const handleSortSelect = (sortId) => {
     setActiveSort(sortId);
     setCurrentPage(1);
+    setSearchParams(prev => {
+      prev.set('sort', sortId);
+      return prev;
+    });
   };
 
   return (
