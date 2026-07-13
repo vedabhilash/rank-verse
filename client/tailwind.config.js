@@ -9,6 +9,15 @@ export default {
       fontSize: {
         'xxs': '0.65rem',
       },
+      boxShadow: {
+        DEFAULT: 'none',
+        sm: 'none',
+        md: 'none',
+        lg: 'none',
+        xl: 'none',
+        '2xl': 'none',
+        inner: 'none',
+      },
       colors: {
         indigo: {
           50: '#f4f4f5',
