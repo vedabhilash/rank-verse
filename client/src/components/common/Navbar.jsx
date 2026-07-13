@@ -76,7 +76,8 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2.5">
+              <img src="/favicon.png" alt="RankVerse Logo" className="w-6 h-6 object-contain" />
               <span className="text-2xl font-extrabold text-white tracking-wider">
                 RANKVERSE
               </span>
