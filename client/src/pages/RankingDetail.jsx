@@ -84,18 +84,18 @@ const RankingDetail = () => {
     }
   }, [socket, id, queryClient]);
 
-  // Check if current user liked/bookmarked or voted
+  // Initialize user interaction states from query payload
   useEffect(() => {
     if (ranking) {
       setUserLikes(ranking.userInteractions?.liked || false);
       setUserBookmarks(ranking.userInteractions?.bookmarked || false);
-      setVotedItems(new Set(ranking.userInteractions?.votedItemIds || []));
+      setVotedItems(ranking.userInteractions?.votedItems || {});
     } else {
       setUserLikes(false);
       setUserBookmarks(false);
-      setVotedItems(new Set());
+      setVotedItems({});
     }
-  }, [ranking]);
+  }, [ranking?._id]); // Only runs on initial fetch of the list
 
   // Likes Mutation
   const toggleLikeMutation = useMutation({
@@ -129,18 +129,18 @@ const RankingDetail = () => {
 
   // Voting Mutation
   const toggleVoteMutation = useMutation({
-    mutationFn: async (itemId) => {
-      const response = await api.post(`/rankings/${ranking._id}/items/${itemId}/vote`);
-      return { itemId, data: response.data };
+    mutationFn: async ({ itemId, voteType }) => {
+      const response = await api.post(`/rankings/${ranking._id}/items/${itemId}/vote`, { type: voteType });
+      return { itemId, voteType, data: response.data };
     },
     onSuccess: ({ itemId, data }) => {
       // Toggle voted item locally
       setVotedItems(prev => {
-        const next = new Set(prev);
+        const next = { ...prev };
         if (data.voted) {
-          next.add(itemId);
+          next[itemId] = data.voteType;
         } else {
-          next.delete(itemId);
+          delete next[itemId];
         }
         return next;
       });
@@ -153,7 +153,18 @@ const RankingDetail = () => {
           }
           return item;
         });
-        return { ...oldData, items: updatedItems };
+        const updatedInteractions = {
+          ...oldData.userInteractions,
+          votedItems: {
+            ...(oldData.userInteractions?.votedItems || {}),
+          }
+        };
+        if (data.voted) {
+          updatedInteractions.votedItems[itemId] = data.voteType;
+        } else {
+          delete updatedInteractions.votedItems[itemId];
+        }
+        return { ...oldData, items: updatedItems, userInteractions: updatedInteractions };
       });
     },
   });
@@ -336,7 +347,6 @@ const RankingDetail = () => {
         
         <div className="space-y-4">
           {ranking.items && ranking.items.map((item, index) => {
-            const isVoted = votedItems.has(item._id);
             return (
               <motion.div
                 key={item._id}
@@ -382,37 +392,77 @@ const RankingDetail = () => {
                     </div>
 
                     {ranking.isCommunitySourced && (() => {
-                      const isThisItemLoading = toggleVoteMutation.isPending && toggleVoteMutation.variables === item._id;
+                      const activeVoteType = votedItems[item._id]; // 'upvote', 'downvote', or undefined
+                      
+                      const isThisItemLoading = toggleVoteMutation.isPending && toggleVoteMutation.variables?.itemId === item._id;
+                      const loadingType = isThisItemLoading ? toggleVoteMutation.variables?.voteType : null;
+
+                      // Upvote Label logic
+                      let upvoteLabel = 'Upvote';
+                      if (loadingType === 'upvote') {
+                        upvoteLabel = 'Voting...';
+                      } else if (activeVoteType === 'upvote') {
+                        upvoteLabel = 'Remove Upvote';
+                      } else if (activeVoteType === 'downvote') {
+                        upvoteLabel = 'Switch to Upvote';
+                      }
+
+                      // Downvote Label logic
+                      let downvoteLabel = 'Downvote';
+                      if (loadingType === 'downvote') {
+                        downvoteLabel = 'Voting...';
+                      } else if (activeVoteType === 'upvote') {
+                        downvoteLabel = 'Switch to Downvote';
+                      } else if (activeVoteType === 'downvote') {
+                        downvoteLabel = 'Remove Downvote';
+                      }
+
                       return (
-                        <button
-                          onClick={() => {
-                            if (!user) navigate('/login');
-                            else toggleVoteMutation.mutate(item._id);
-                          }}
-                          disabled={toggleVoteMutation.isPending}
-                          className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full font-bold text-xs transition duration-200 disabled:opacity-50 ${
-                            isVoted
-                              ? 'bg-emerald-500/10 border border-emerald-500/35 text-emerald-400'
-                              : 'bg-indigo-600 hover:bg-indigo-750 text-white shadow shadow-indigo-500/10'
-                          }`}
-                        >
-                          {isThisItemLoading ? (
-                            <>
+                        <div className="flex items-center space-x-2">
+                          {/* Upvote Button */}
+                          <button
+                            onClick={() => {
+                              if (!user) navigate('/login');
+                              else toggleVoteMutation.mutate({ itemId: item._id, voteType: 'upvote' });
+                            }}
+                            disabled={toggleVoteMutation.isPending}
+                            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full font-bold text-xs transition duration-200 disabled:opacity-50 ${
+                              activeVoteType === 'upvote'
+                                ? 'bg-emerald-500/15 border border-emerald-500/40 text-emerald-400'
+                                : 'bg-slate-950/40 border border-slate-850/60 hover:text-emerald-450 text-slate-400'
+                            }`}
+                            title={upvoteLabel}
+                          >
+                            {loadingType === 'upvote' ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              <span>Voting...</span>
-                            </>
-                          ) : isVoted ? (
-                            <>
-                              <Check className="w-3.5 h-3.5" />
-                              <span>Devote</span>
-                            </>
-                          ) : (
-                            <>
+                            ) : (
                               <ArrowUpCircle className="w-3.5 h-3.5" />
-                              <span>Upvote</span>
-                            </>
-                          )}
-                        </button>
+                            )}
+                            <span>{upvoteLabel}</span>
+                          </button>
+
+                          {/* Downvote Button */}
+                          <button
+                            onClick={() => {
+                              if (!user) navigate('/login');
+                              else toggleVoteMutation.mutate({ itemId: item._id, voteType: 'downvote' });
+                            }}
+                            disabled={toggleVoteMutation.isPending}
+                            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full font-bold text-xs transition duration-200 disabled:opacity-50 ${
+                              activeVoteType === 'downvote'
+                                ? 'bg-rose-500/15 border border-rose-500/40 text-rose-450'
+                                : 'bg-slate-950/40 border border-slate-850/60 hover:text-rose-450 text-slate-400'
+                            }`}
+                            title={downvoteLabel}
+                          >
+                            {loadingType === 'downvote' ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <ArrowUpCircle className="w-3.5 h-3.5 rotate-180" />
+                            )}
+                            <span>{downvoteLabel}</span>
+                          </button>
+                        </div>
                       );
                     })()}
                   </div>
