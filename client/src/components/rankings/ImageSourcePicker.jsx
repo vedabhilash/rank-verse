@@ -187,7 +187,7 @@ const ImageSourcePicker = ({ itemTitle, rankingCategory, currentImage, onSelectI
       {/* Tab Panel 1: Upload */}
       {activeTab === 'upload' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-center border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-lg p-6 bg-slate-950/20 transition-all duration-200">
+          <div className="relative flex items-center justify-center border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-lg p-6 bg-slate-950/20 transition-all duration-200">
             <div className="text-center">
               {uploadPreview ? (
                 <div className="relative group w-40 h-40 mx-auto rounded overflow-hidden">
