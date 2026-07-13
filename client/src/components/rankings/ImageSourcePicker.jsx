@@ -73,18 +73,8 @@ const ImageSourcePicker = ({ itemTitle, rankingCategory, currentImage, onSelectI
       const { url, publicId } = response.data;
       setSelectedImageUrl(url);
 
-      // Describe uploaded image using Gemini
-      let description = '';
-      let tags = [];
-      try {
-        const describeResponse = await api.post('/ai/describe-image', { imageUrl: url });
-        description = describeResponse.data.description;
-        tags = describeResponse.data.tags;
-      } catch (err) {
-        console.warn('Gemini description service failed, skipping metadata populate', err);
-      }
-
-      onSelectImage(url, 'upload', publicId, description, tags);
+      // Call parent select function directly without Gemini AI description
+      onSelectImage(url, 'upload', publicId, '', []);
     } catch (err) {
       handleError(err);
     } finally {
@@ -241,12 +231,12 @@ const ImageSourcePicker = ({ itemTitle, rankingCategory, currentImage, onSelectI
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Processing with AI...</span>
+                  <span>Uploading...</span>
                 </>
               ) : (
                 <>
                   <Upload className="w-4 h-4" />
-                  <span>Upload & Analyze with AI</span>
+                  <span>Upload Image</span>
                 </>
               )}
             </button>
