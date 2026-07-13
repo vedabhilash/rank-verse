@@ -402,8 +402,8 @@ const RankingDetail = () => {
                             </>
                           ) : isVoted ? (
                             <>
-                              <Check className="w-3.5 h-3.5 animate-bounce" />
-                              <span>Voted</span>
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Devote</span>
                             </>
                           ) : (
                             <>
