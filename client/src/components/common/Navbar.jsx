@@ -55,7 +55,7 @@ const Navbar = () => {
   };
 
   const isActive = (path) => {
-    if (path === '/trending') {
+    if (path === '/explore?sort=trending') {
       return location.pathname === '/explore' && location.search.includes('sort=trending');
     }
     if (path === '/explore') {
@@ -66,7 +66,7 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Explore', path: '/explore', icon: Compass },
-    { name: 'Trending', path: '/trending', icon: TrendingUp },
+    { name: 'Trending', path: '/explore?sort=trending', icon: TrendingUp },
     { name: 'Leaderboards', path: '/leaderboards', icon: Award },
   ];
 

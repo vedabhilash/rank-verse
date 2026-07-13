@@ -146,7 +146,7 @@ const Home = () => {
             <TrendingUp className="w-5 h-5 text-indigo-400" />
             <h2 className="text-xl font-bold text-slate-100">Rising Trends</h2>
           </div>
-          <Link to="/trending" className="text-xs text-indigo-400 font-semibold hover:underline">
+          <Link to="/explore?sort=trending" className="text-xs text-indigo-400 font-semibold hover:underline">
             View All Trending
           </Link>
         </div>
