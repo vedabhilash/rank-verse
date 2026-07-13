@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { Link } from 'react-router-dom';
 import { Award, Heart, Eye, Users, ShieldCheck, Compass } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Avatar from '../components/common/Avatar';
 
 const Leaderboards = () => {
   const [activeTab, setActiveTab] = useState('creators');
@@ -93,12 +94,7 @@ const Leaderboards = () => {
                         {rank}
                       </span>
 
-                      {/* Avatar */}
-                      <img
-                        src={creator.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=rankverse'}
-                        alt=""
-                        className="w-10 h-10 rounded-full object-cover border border-purple-500/50 bg-slate-800"
-                      />
+                      <Avatar user={creator} className="w-10 h-10" sizeText="text-sm" />
 
                       <div>
                         <Link to={`/profile/${creator._id}`} className="font-bold text-slate-200 hover:text-indigo-400 flex items-center space-x-1">

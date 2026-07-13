@@ -8,6 +8,7 @@ import {
   Database, Eye, Heart, MessageSquare, Award 
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Avatar from '../components/common/Avatar';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -156,11 +157,7 @@ const Admin = () => {
                     {usersListData.users.map((item) => (
                       <tr key={item._id} className="border-b border-slate-850/50 hover:bg-slate-950/15 last:border-0">
                         <td className="py-3 flex items-center space-x-2">
-                          <img
-                            src={item.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=rankverse'}
-                            alt=""
-                            className="w-7 h-7 rounded-full bg-slate-800"
-                          />
+                          <Avatar user={item} className="w-7 h-7" sizeText="text-[10px]" />
                           <span className="font-bold text-slate-200">{item.name}</span>
                         </td>
                         <td className="py-3 text-slate-400">{item.email}</td>

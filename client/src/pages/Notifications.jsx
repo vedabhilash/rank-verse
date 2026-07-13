@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { Link } from 'react-router-dom';
 import { Bell, Heart, MessageSquare, UserPlus, CheckCircle, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Avatar from '../components/common/Avatar';
 
 const Notifications = () => {
   const queryClient = useQueryClient();
@@ -124,11 +125,7 @@ const Notifications = () => {
                   </div>
                   <div>
                     <div className="flex items-center space-x-2">
-                      <img
-                        src={notif.actor?.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=rankverse'}
-                        alt=""
-                        className="w-5 h-5 rounded-full bg-slate-850"
-                      />
+                      <Avatar user={notif.actor} className="w-5 h-5" sizeText="text-[8px]" />
                       <p className="text-xs leading-relaxed">{text}</p>
                     </div>
                     <span className="text-[10px] text-slate-550 block mt-1">
